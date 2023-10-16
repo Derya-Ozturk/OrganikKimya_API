@@ -1,0 +1,93 @@
+﻿@page "/"
+
+@using Business.Abstract
+@using CurrieTechnologies.Razor.SweetAlert2
+@using Entities.Dtos.LoginAccount
+
+@inject NavigationManager navigationManager
+@inject SweetAlertService Swal
+@inject ILoginService _loginService;
+
+@layout LoginLayout
+
+<div class="container">
+    <div class="row justify-content-center align-items-center">
+        <div class="col-xl-10 col-lg-12 col-md-9">
+            <div class="card o-hidden border-0 shadow-lg my-5">
+                <div class="card-body p-0">
+                    <div class="row">
+                        <div class="col-md-6 offset-md-3">
+                            <div class="p-5">
+                                <div class="text-center">
+                                    <h1 class="h3 text-gray-900 mb-4"> Demirbaş Sayfası</h1>
+                                    <br />
+                                    <h1 class="h4 text-gray-900 mb-4"> Giriş Yap</h1>
+                                </div>
+                                <div>
+                                    <div class="form-group">
+                                        <input type="email" class="form-control form-control-user" aria-describedby="emailHelp" placeholder="E-posta" @bind="@email">
+                                    </div>
+                                    <br />
+                                    <div class="form-group">
+                                        <input type="password" class="form-control form-control-user" placeholder="Şifre" @bind="@password">
+                                    </div>
+                                    <br />
+                                    <div style="text-align: center;">
+                                        <input type="button" class="btn btn-primary btn-user btn-block" value="Giriş Yap" @onclick="() => LoginPage()" />
+                                    </div>
+                                </div>
+                                <br>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@code
+{
+    string email = "";
+    string password = "";
+
+
+    public void LoginPage()
+    {
+        SweetAlert2Model sweetAlert2Model = new();
+
+        if (!string.IsNullOrEmpty(email) && !string.IsNullOrEmpty(password))
+        {
+            LoginAccountRequestDto loginRequestDto = new()
+                {
+                    Email = email,
+                    Password = password
+                };
+
+
+            var response = _loginService.LoginAccount(loginRequestDto);
+
+            if (response.LoginData != null)
+            {
+                navigationManager.NavigateTo("/fixturePage");
+            }
+
+            else
+            {
+                sweetAlert2Model.Type = "error";
+                sweetAlert2Model.Title = "Hatalı Giriş";
+                sweetAlert2Model.Message = "Giriş bilgileri hatalı, lütfen yeniden deneyiniz.";
+                Swal.FireAsync(sweetAlert2Model.Title, sweetAlert2Model.Message, sweetAlert2Model.Type);
+            }
+        }
+
+        else
+        {
+            sweetAlert2Model.Type = "error";
+            sweetAlert2Model.Title = "Hatalı Giriş";
+            sweetAlert2Model.Message = "Şifre ya da email alanlarından biri boş gönderilmiş, lütfen bütün alanları doldurunuz.";
+            Swal.FireAsync(sweetAlert2Model.Title, sweetAlert2Model.Message, sweetAlert2Model.Type);
+        }
+    }
+}

@@ -1,0 +1,106 @@
+﻿@page "/fixturePage"
+@using System.Globalization
+@using Business.Abstract
+@using Entities.Concrete
+@using System.Text.Json
+@using FixtureWebUI.Dtos
+@using Newtonsoft.Json
+
+@inject IJSRuntime JS
+
+@inject NavigationManager Navi
+@inject SweetAlertService Swal
+@inject IFixtureService _fixtureService
+
+<div class="app-main__inner">
+    <div class="app-page-title">
+        <div class="page-title-wrapper">
+            <div class="page-title-heading">
+                <div class="page-title-icon"><i class="fa fa-desktop"></i></div>
+                <div>
+                    DEMİRBAŞ LİSTESİ
+                    <div class="page-title-subheading">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div>
+    </div>
+    <br />
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="main-card mb-3 card">
+                <div class="card-body">
+                    <MudTable Items="@fixtureListDto" Hover="true">
+
+                        <HeaderContent>
+                            <MudTh>Id</MudTh>
+                            <MudTh>Demirbaş Tipi</MudTh>
+                            <MudTh>Adı</MudTh>
+                            <MudTh>Sayısı</MudTh>
+                        </HeaderContent>
+
+                        <RowTemplate>
+                            <MudTd DataLabel="id">@context.Id</MudTd>
+                            <MudTd DataLabel="type">@context.Type</MudTd>
+                            <MudTd DataLabel="name">@context.Name</MudTd>
+                            <MudTd DataLabel="quantity">@context.Quantity</MudTd>
+                        </RowTemplate>
+
+                        <PagerContent>
+                            <MudTablePager PageSizeOptions="new int[] {10, 25, 50, 100, int.MaxValue}" InfoFormat="@($"End {infoFormat}")" />
+                        </PagerContent>
+
+                    </MudTable>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+
+    private string infoFormat = "{first_item}-{last_item} of {all_items}";
+
+    string BaseUrl = "https://localhost:7218/api/fixture/";
+    string fixtureType = "";
+    string fixtureName = "";
+
+    SweetAlert2Model sweetAlert2Model = new();
+
+    FixtureDto fixtureDto = new();
+    List<FixtureDto> fixtureListDto = new();
+
+
+    protected override void OnInitialized()
+    {
+        GetFixtureList();
+    }
+
+    public void GetFixtureList()
+    {
+        var client = new RestClient($"{BaseUrl}getfixturelist");
+
+        var request = new RestRequest { Method = Method.Get };
+
+        request.AddParameter("text/plain", @"", ParameterType.RequestBody);
+
+        var response = client.Execute(request);
+
+        if (response.Content != null)
+        {
+            fixtureListDto = JsonConvert.DeserializeObject<List<FixtureDto>>(response.Content);
+        }
+
+        else
+        {
+            sweetAlert2Model.Type = "error";
+            sweetAlert2Model.Title = "Hata";
+            sweetAlert2Model.Message = "Liste getirilemedi. Lütfen tekrar deneyiniz.";
+            Swal.FireAsync(sweetAlert2Model.Title, sweetAlert2Model.Message, sweetAlert2Model.Type);
+        }
+    }
+}
